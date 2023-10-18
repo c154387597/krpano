@@ -1,6 +1,6 @@
 {
   "name": "@kris7chan/krpano",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "krpano sdk",
   "module": "dist/index.js",
   "main": "dist/index.js",
@@ -9,7 +9,8 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "lib"
   ],
   "scripts": {
     "start": "tsc --build tsconfig.build.json --watch",
@@ -37,5 +38,5 @@
   "dependencies": {
     "escape-html": "^1.0.3"
   },
-  "author": ""
+  "author": "cl"
 }
