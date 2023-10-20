@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { memo, useContext, useEffect } from "react";
 import { KrpanoRendererContext } from "../contexts";
 
 /**
@@ -40,7 +40,7 @@ export interface AutorotateProps {
   interruptionevents?: string;
 }
 
-export const Autorotate: React.FC<AutorotateProps> = (props) => {
+export const Autorotate: React.FC<AutorotateProps> = memo((props) => {
   const renderer = useContext(KrpanoRendererContext);
 
   useEffect(() => {
@@ -53,4 +53,4 @@ export const Autorotate: React.FC<AutorotateProps> = (props) => {
   }, [renderer, props]);
 
   return <div className="autorotate" />;
-};
+});

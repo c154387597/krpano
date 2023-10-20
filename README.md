@@ -16,10 +16,9 @@
 
 ## 🖥 依赖
 
-目前仅在 `v1.19pr13` 开发测试，`v1.20` 支持情况未知。
-`v1.20` 新增了一些 api，例如可以动态添加 `include`，无需使用队列实现，后续迭代将会适配。
+`krpano@^1.19` 建议使用 `v1.x` 版本。
 
-- krpano.js = 1.19pr13
+- krpano.js >= 1.21.1
 - React >= 17
 
 ## 📦 安装
@@ -30,7 +29,7 @@
 pnpm add @kris7chan/krpano
 ```
 
-- 从[Krpano 官网](https://krpano.com/download/)下载 `Krpano@1.19pr13` 并解压得到 `krpano.js`，然后通过 `script` 标签引入，使`window.embedpano`函数可用
+- 从[Krpano 官网](https://krpano.com/download/)下载 `Krpano` 并解压得到 `krpano.js`，或者在 `lib` 文件夹拿取（没有水印）。然后通过 `script` 标签引入，使 `window.embedpano` 函数可用
 
 ```html
 <script src="krpano.js"></script>
@@ -119,7 +118,7 @@ const App = () => {
 
 ### 热点的使用
 
-> 目前只支持图片热点
+> `2.x` 开始，在 `type=text` 时，支持 `Hotspot children`，需要注意的是在 `vr` 模式下，目前仅支持显示文本和文本样式。如果有 `url` 属性，将优先使用 `url`。
 
 使用 `Hotspot` 组件可以轻松的渲染热点。同时 `Hotspot` 组件还支持一系列的回调设置。
 
@@ -160,7 +159,7 @@ const App = () => {
         />
         <HotSpot
           name="hotspot1"
-          url="/images/guide.png"
+          type="text"
           atv={3}
           ath={-27}
           scale={0.3}
@@ -169,7 +168,9 @@ const App = () => {
           onClick={() => {
             console.log("click hotsopt1");
           }}
-        />
+        >
+          <p style={{ color: "red" }}>label</p>
+        </HotSpot>
       </Scene>
     </Krpano>
   );

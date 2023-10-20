@@ -1,11 +1,11 @@
-import { PromiseQueue } from "./PromiseQueue";
-import { ViewProps } from "./components";
+import { TagActionProxy } from ".";
+import { ViewProps } from "../components";
 import {
   NativeKrpanoRendererObject,
   ROTATE_DIRECTION,
   ZOOM_ACTION,
-} from "./types";
-import { buildKrpanoAction, buildKrpanoTagSetterActions } from "./utils";
+} from "../types";
+import { buildKrpanoAction, buildKrpanoTagSetterActions } from "../utils";
 
 export type HandlerFunc = (renderer: KrpanoActionProxy) => void;
 
@@ -19,7 +19,7 @@ export class KrpanoActionProxy {
   name: string;
   krpanoRenderer?: NativeKrpanoRendererObject;
   eventHandlers: EventHandler[] = [];
-  dynamicTagWaitQueue: PromiseQueue<any>;
+  tagAction: TagActionProxy;
 
   constructor(
     krpanoRenderer?: NativeKrpanoRendererObject,
@@ -27,19 +27,7 @@ export class KrpanoActionProxy {
   ) {
     this.krpanoRenderer = krpanoRenderer;
     this.name = name;
-
-    // krpano 1.19 版本不支持动态插入 include，只能在文本中插入后重新加载
-    this.dynamicTagWaitQueue = new PromiseQueue();
-  }
-
-  /**
-   * 等待 include 标签加载完成
-   */
-  waitIncludeLoaded(push?: boolean) {
-    return this.syncTagsLoaded
-      ? Promise.resolve()
-      : // 先进后出
-        this.dynamicTagWaitQueue[push ? "push" : "unshift"]();
+    this.tagAction = new TagActionProxy(krpanoRenderer);
   }
 
   /**
@@ -74,7 +62,7 @@ export class KrpanoActionProxy {
       nexttick = true;
     }
 
-    await this.waitIncludeLoaded();
+    await this.tagAction.waitIncludeLoaded();
 
     this.call(
       buildKrpanoTagSetterActions(name ? `${tag}[${name}]` : tag, attrs),
@@ -211,56 +199,11 @@ export class KrpanoActionProxy {
     name: string,
     attrs: Record<string, string | boolean | number | undefined>
   ) {
-    await this.waitIncludeLoaded();
+    await this.tagAction.waitIncludeLoaded();
     this.call(buildKrpanoAction("addhotspot", name), true);
     this.setTag("hotspot", name, attrs);
   }
   removeHotspot(name: string): void {
     this.call(buildKrpanoAction("removehotspot", name), true);
-  }
-
-  syncTagsLoaded = false;
-  syncTagStack: {
-    tagName: string;
-    attribute: Record<string, unknown>;
-  }[] = [];
-
-  pushSyncTag(tagName: string, attribute: Record<string, unknown>) {
-    this.syncTagStack.unshift({
-      tagName,
-      attribute,
-    });
-  }
-
-  async createSyncTags() {
-    const xmlDoc = await this.getXMLContent();
-    const krpanoElement = xmlDoc.querySelector("krpano");
-
-    while (this.syncTagStack.length) {
-      const tag = this.syncTagStack.pop()!;
-      const element = xmlDoc.createElement(tag.tagName);
-
-      for (const key in tag.attribute) {
-        element.setAttribute(key, tag.attribute[key] as string);
-      }
-
-      krpanoElement?.insertBefore(element, null);
-    }
-
-    return xmlDoc;
-  }
-
-  private async getXMLContent() {
-    let contentText = "";
-    const xml = this?.get("xml");
-    const parser = new DOMParser();
-
-    if (xml.content) {
-      contentText = xml.content;
-    } else if (xml.url) {
-      contentText = await fetch(xml.url).then((res) => res.text());
-    }
-
-    return parser.parseFromString(contentText, "text/xml");
   }
 }

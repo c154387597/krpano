@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { memo, useContext, useEffect } from "react";
 import { KrpanoRendererContext } from "../contexts";
 
 /**
@@ -42,7 +42,7 @@ export interface ViewProps {
   children?: null;
 }
 
-export const View: React.FC<ViewProps> = ({ children, ...viewAttrs }) => {
+export const View: React.FC<ViewProps> = memo(({ children, ...viewAttrs }) => {
   const renderer = useContext(KrpanoRendererContext);
 
   useEffect(() => {
@@ -50,6 +50,4 @@ export const View: React.FC<ViewProps> = ({ children, ...viewAttrs }) => {
   }, [renderer, viewAttrs]);
 
   return <div className="view">{children}</div>;
-};
-
-export default View;
+});

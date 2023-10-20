@@ -1,13 +1,21 @@
-import { FC, ReactNode, useContext, useEffect, useMemo } from "react";
+import { FC, ReactNode, memo, useContext, useEffect, useMemo } from "react";
 import { EventCallback } from "../types";
 import { KrpanoRendererContext } from "../contexts";
-import { buildKrpanoAction, mapEventPropsToJSCall, mapObject } from "../utils";
+import {
+  buildKrpanoAction,
+  childrenToOuterHTML,
+  mapEventPropsToJSCall,
+  mapObject,
+} from "../utils";
 
 export interface HotspotProps {
   name: string;
   children?: ReactNode;
   url?: string;
-  type?: string;
+  /**
+   * @see https://krpano.com/docu/xml/?version=121#layer.type
+   */
+  type?: "image" | "text";
   keep?: boolean;
   visible?: boolean;
   enabled?: boolean;
@@ -16,7 +24,13 @@ export interface HotspotProps {
   maskChildren?: boolean;
   zOrder?: string;
   style?: string;
+  /**
+   * 水平方向
+   */
   ath?: number;
+  /**
+   * 垂直方向
+   */
   atv?: number;
   edge?: string;
   zoom?: boolean;
@@ -33,6 +47,12 @@ export interface HotspotProps {
   scale?: number;
   rotate?: number;
   alpha?: number;
+  bg?: boolean;
+  bgcolor?: string;
+  bgalpha?: number;
+  bgborder?: number;
+  bgbordermode?: "outside" | "inside";
+  bgborderblend?: boolean;
   onOver?: EventCallback;
   onHover?: EventCallback;
   onOut?: EventCallback;
@@ -42,14 +62,15 @@ export interface HotspotProps {
   onLoaded?: EventCallback;
 }
 
-export const HotSpot: FC<HotspotProps> = ({ name, children, ...rest }) => {
+export const HotSpot: FC<HotspotProps> = memo(({ name, ...rest }) => {
   const EventSelector = `hotspot[${name}]`;
   const renderer = useContext(KrpanoRendererContext);
   const options = useMemo(() => {
-    const { scale = 0.5, ...r } = rest;
+    const { scale = 0.5, children, ...r } = rest;
 
     return {
       scale,
+      html: r.type === "text" ? childrenToOuterHTML(children) : null,
       onOver: buildKrpanoAction("tween", "scale", scale + 0.05),
       onOut: buildKrpanoAction("tween", "scale", scale),
       ...r,
@@ -76,18 +97,20 @@ export const HotSpot: FC<HotspotProps> = ({ name, children, ...rest }) => {
   }, []);
 
   useEffect(() => {
-    renderer?.setTag(
+    if (!renderer) return;
+
+    renderer.setTag(
       "hotspot",
       name,
       Object.assign(
         { ...options },
         mapEventPropsToJSCall(
           { ...options },
-          (key) => `js(${renderer?.name}.fire(${key},${EventSelector}))`
+          (key) => `js(${renderer.name}.fire(${key},${EventSelector}))`
         )
       )
     );
   }, [renderer, name, options]);
 
-  return <div className="hotspot">{children}</div>;
-};
+  return <div className="hotspot" />;
+});

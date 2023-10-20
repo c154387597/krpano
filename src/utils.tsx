@@ -1,8 +1,10 @@
+import { ReactNode } from "react";
 import escapeHTML from "escape-html";
 import { XMLMeta } from "./types";
+import ReactDOMServer from "react-dom/server";
 
 /**
- * @see https://krpano.com/docu/actions/?version=119pr13
+ * @see https://krpano.com/docu/actions
  */
 type FuncName =
   | "addplugin"
@@ -42,8 +44,7 @@ export const buildKrpanoTagSetterActions = (
       }
       // 如果属性值中有双引号，需要改用单引号
       let quote = '"';
-      if (val.toString().includes(quote)) {
-        // eslint-disable-next-line quotes
+      if (`${val}`.includes(quote)) {
         quote = "'";
       }
       if (key === "style") {
@@ -54,7 +55,7 @@ export const buildKrpanoTagSetterActions = (
       }
       // content是XML文本，不能转义，因为不涉及用户输入也不需要
       return `set(${name}.${key}, ${quote}${
-        key === "content" ? val : escapeHTML(val.toString())
+        ["content", "html"].includes(key) ? val : escapeHTML(val.toString())
       }${quote});`;
     })
     .filter((str) => !!str)
@@ -105,3 +106,12 @@ export const mapEventPropsToJSCall = (
     }
     return {};
   }) as Record<string, string>;
+
+export const childrenToOuterHTML = (children: ReactNode) => {
+  const wrapper = document.createElement("div");
+  const childrenString = ReactDOMServer.renderToStaticMarkup(<>{children}</>);
+
+  wrapper.innerHTML = childrenString;
+
+  return wrapper.outerHTML;
+};

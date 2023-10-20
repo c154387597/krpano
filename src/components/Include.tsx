@@ -14,7 +14,7 @@ export const Include: FC<IncludeProps> = ({ url }) => {
   useEffect(() => {
     if (!renderer) return;
 
-    renderer.pushSyncTag("include", { url });
+    renderer.tagAction.pushSyncTag("include", { url });
   }, [renderer]);
 
   return <></>;

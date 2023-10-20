@@ -1,8 +1,9 @@
-import { FC } from "react";
+import { FC, memo } from "react";
 import { Include, Plugin } from "..";
 
 export interface WebVRProps {
   url: string;
+  [key: string]: unknown;
 }
 
 const WEBVR_CONFIG = {
@@ -15,11 +16,16 @@ const WEBVR_CONFIG = {
   mobilevr_fake_support: true,
 };
 
-export const WebVR: FC<WebVRProps> = ({ url }) => {
+export const WebVR: FC<WebVRProps> = memo(({ url, ...attrs }) => {
   return (
     <>
       <Include url={url} />
-      <Plugin attribute={WEBVR_CONFIG} />
+      <Plugin
+        attribute={{
+          ...WEBVR_CONFIG,
+          ...attrs,
+        }}
+      />
     </>
   );
-};
+});

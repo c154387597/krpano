@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect } from "react";
+import { FC, memo, useContext, useEffect } from "react";
 import { KrpanoRendererContext } from "../contexts/KrpanoRendererContext";
 import { EventCallback } from "../types";
 import { mapEventPropsToJSCall } from "../utils";
@@ -57,7 +57,7 @@ export interface EventsProps extends EventsConfig {}
 
 const GlobalEvents = "__GlobalEvents";
 
-export const Events: FC<EventsProps> = ({ name, ...EventsAttrs }) => {
+export const Events: FC<EventsProps> = memo(({ name, ...EventsAttrs }) => {
   const renderer = useContext(KrpanoRendererContext);
   const EventSelector = `events[${name || GlobalEvents}]`;
 
@@ -85,4 +85,4 @@ export const Events: FC<EventsProps> = ({ name, ...EventsAttrs }) => {
   }, [name, renderer]);
 
   return <div className="events"></div>;
-};
+});

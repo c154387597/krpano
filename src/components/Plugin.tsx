@@ -14,7 +14,7 @@ export const Plugin: FC<PluginProps> = ({ attribute }) => {
   useEffect(() => {
     if (!renderer) return;
 
-    renderer.pushSyncTag("plugin", attribute);
+    renderer.tagAction.pushSyncTag("plugin", attribute);
   }, [renderer]);
 
   return <></>;

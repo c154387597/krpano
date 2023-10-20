@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { KrpanoActionProxy } from "../KrpanoActionProxy";
+import { KrpanoActionProxy } from "../models";
 import { useMounted, useEventCallback } from "../hooks";
 import { IKrpanoConfig, NativeKrpanoRendererObject } from "../types";
 import { CurrentSceneContext, KrpanoRendererContext } from "../contexts";
@@ -16,6 +16,7 @@ export interface KrpanoProps extends Omit<IKrpanoConfig, "onready" | "target"> {
    * webvr.xml 地址，需遵循同源策略
    */
   webvrUrl?: string;
+  webvrConfig?: Record<string, unknown>;
   onReady?: (renderer: KrpanoActionProxy) => void;
 }
 
@@ -26,6 +27,7 @@ export const Krpano: React.FC<KrpanoProps> = ({
   currentScene,
   target = "krpano",
   webvrUrl,
+  webvrConfig,
   onReady,
   ...rest
 }) => {
@@ -48,17 +50,17 @@ export const Krpano: React.FC<KrpanoProps> = ({
     if (!renderer) return;
 
     const reloadXML = async () => {
-      if (renderer.syncTagStack.length) {
-        // 如果有同步标签（include、plugin），则重新加载
+      if (renderer.tagAction.syncTagStack.length) {
+        // krpano 1.19 版本不支持动态插入 include，只能在文本中插入后重新加载
         const updateXmlString = new XMLSerializer().serializeToString(
-          await renderer.createSyncTags()
+          await renderer.tagAction.createSyncTags()
         );
 
         renderer.call(buildKrpanoAction("loadxml", updateXmlString));
       }
 
-      renderer.syncTagsLoaded = true;
-      renderer.dynamicTagWaitQueue.flushResolve(true);
+      renderer.tagAction.syncTagsLoaded = true;
+      renderer.tagAction.queue.flushResolve(true);
     };
 
     reloadXML();
@@ -67,7 +69,7 @@ export const Krpano: React.FC<KrpanoProps> = ({
   useEffect(() => {
     if (!renderer || !currentScene) return;
 
-    renderer.waitIncludeLoaded(true).then(() => {
+    renderer.tagAction.waitIncludeLoaded(true).then(() => {
       renderer.loadScene(currentScene);
     });
   }, [renderer, currentScene]);
@@ -98,7 +100,7 @@ export const Krpano: React.FC<KrpanoProps> = ({
   return (
     <KrpanoRendererContext.Provider value={renderer}>
       <CurrentSceneContext.Provider value={currentScene || null}>
-        {webvrUrl && <WebVR url={webvrUrl} />}
+        {webvrUrl && <WebVR url={webvrUrl} {...webvrConfig} />}
 
         <div id={target} className={className} style={style}>
           {renderer ? children : null}

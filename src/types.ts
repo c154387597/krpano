@@ -1,4 +1,4 @@
-import { KrpanoActionProxy } from "./KrpanoActionProxy";
+import { KrpanoActionProxy } from "./models";
 
 declare global {
   interface Window {
