@@ -1,4 +1,4 @@
-import { FC, memo, useContext, useEffect } from "react";
+import { FC, useContext, useEffect } from "react";
 import { KrpanoRendererContext } from "../contexts/KrpanoRendererContext";
 import { EventCallback } from "../types";
 import { mapEventPropsToJSCall } from "../utils";
@@ -9,6 +9,7 @@ import { mapEventPropsToJSCall } from "../utils";
 export interface EventsConfig {
   /** 事件名，若存在该参数则为局部事件 */
   name?: string;
+  keep?: boolean;
   onEnterFullscreen?: EventCallback;
   onExitFullscreen?: EventCallback;
   onXmlComplete?: EventCallback;
@@ -57,7 +58,7 @@ export interface EventsProps extends EventsConfig {}
 
 const GlobalEvents = "__GlobalEvents";
 
-export const Events: FC<EventsProps> = memo(({ name, ...EventsAttrs }) => {
+export const Events: FC<EventsProps> = ({ name, keep, ...EventsAttrs }) => {
   const renderer = useContext(KrpanoRendererContext);
   const EventSelector = `events[${name || GlobalEvents}]`;
 
@@ -76,13 +77,16 @@ export const Events: FC<EventsProps> = memo(({ name, ...EventsAttrs }) => {
       "events",
       // 全局事件直接设置
       name || null,
-      mapEventPropsToJSCall(
-        { ...EventsAttrs },
-        (eventName) =>
-          `js(${renderer.name}.fire(${eventName},${EventSelector}))`
-      )
+      {
+        ...mapEventPropsToJSCall(
+          { ...EventsAttrs },
+          (eventName) =>
+            `js(${renderer.name}.fire(${eventName},${EventSelector}))`
+        ),
+        keep,
+      }
     );
   }, [name, renderer]);
 
   return <div className="events"></div>;
-});
+};

@@ -9,10 +9,13 @@ export class TagActionProxy {
    * 同步标签是否加载完成
    */
   syncTagsLoaded = false;
+
   syncTagStack: {
     tagName: string;
     attribute: Record<string, unknown>;
+    children?: string;
   }[] = [];
+  syncXMLStringStack: string[] = [];
 
   constructor(krpanoRenderer?: NativeKrpanoRendererObject) {
     this.krpanoRenderer = krpanoRenderer;
@@ -31,10 +34,15 @@ export class TagActionProxy {
   /**
    * 将异步标签推入堆中
    */
-  pushSyncTag(tagName: string, attribute: Record<string, unknown>) {
+  pushSyncTag(
+    tagName: string,
+    attribute: Record<string, unknown>,
+    children?: string
+  ) {
     this.syncTagStack.unshift({
       tagName,
       attribute,
+      children,
     });
   }
 
@@ -46,8 +54,18 @@ export class TagActionProxy {
     const krpanoElement = xmlDoc.querySelector("krpano");
 
     while (this.syncTagStack.length) {
+      let element: HTMLElement | null = null;
       const tag = this.syncTagStack.pop()!;
-      const element = xmlDoc.createElement(tag.tagName);
+
+      if (!tag.children) {
+        element = xmlDoc.createElement(tag.tagName);
+      } else {
+        const parser = new DOMParser();
+        element = parser.parseFromString(
+          `<${tag.tagName}>${tag.children}</${tag.tagName}>`,
+          "text/xml"
+        ).documentElement;
+      }
 
       for (const key in tag.attribute) {
         element.setAttribute(key, tag.attribute[key] as string);

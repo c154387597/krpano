@@ -1,21 +1,37 @@
 import { FC, useContext, useEffect } from "react";
 import { KrpanoRendererContext } from "../contexts";
+import { buildKrpanoAction, is121Version } from "../utils";
 
 export interface PluginProps {
-  attribute: Record<string, unknown>;
+  name: string;
+  [key: string]: unknown;
 }
 
-/**
- * 注意：不支持动态插入
- */
-export const Plugin: FC<PluginProps> = ({ attribute }) => {
+export const Plugin: FC<PluginProps> = ({ name, ...attribute }) => {
   const renderer = useContext(KrpanoRendererContext);
 
   useEffect(() => {
     if (!renderer) return;
 
-    renderer.tagAction.pushSyncTag("plugin", attribute);
-  }, [renderer]);
+    if (is121Version) {
+      const arr: string[] = [];
+
+      for (const key in attribute) {
+        arr.push(`${key}=${attribute[key]}`);
+      }
+
+      renderer.call(buildKrpanoAction("addplugin", name, ...arr));
+
+      return () => {
+        renderer.call(buildKrpanoAction("removeplugin", name));
+      };
+    } else {
+      renderer.tagAction.pushSyncTag("plugin", {
+        ...attribute,
+        name,
+      });
+    }
+  }, [renderer, name, attribute]);
 
   return <></>;
 };

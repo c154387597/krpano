@@ -1,6 +1,6 @@
 {
   "name": "@kris7chan/krpano",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "krpano sdk",
   "module": "dist/index.js",
   "main": "dist/index.js",

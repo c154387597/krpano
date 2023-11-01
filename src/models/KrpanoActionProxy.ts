@@ -58,12 +58,11 @@ export class KrpanoActionProxy {
   ) {
     let nexttick = false;
 
-    if (tag === "hotspot" || tag === "events") {
+    if (["events", "hotspot", "layer"].includes(tag)) {
       nexttick = true;
     }
 
     await this.tagAction.waitIncludeLoaded();
-
     this.call(
       buildKrpanoTagSetterActions(name ? `${tag}[${name}]` : tag, attrs),
       nexttick
@@ -84,8 +83,6 @@ export class KrpanoActionProxy {
       typeof this.get("scene").removeItem === "function"
     ) {
       this.get("scene").removeItem(name);
-    } else {
-      // TODO: report Error
     }
   }
 
@@ -95,7 +92,13 @@ export class KrpanoActionProxy {
    */
   loadScene(name: string): void {
     this.call(
-      buildKrpanoAction("loadscene", name, "null", "MERGE", "BLEND(0.5)")
+      buildKrpanoAction(
+        "loadscene",
+        name,
+        "null",
+        "MERGE",
+        "OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)"
+      )
     );
   }
 
@@ -205,5 +208,17 @@ export class KrpanoActionProxy {
   }
   removeHotspot(name: string): void {
     this.call(buildKrpanoAction("removehotspot", name), true);
+  }
+
+  async addLayer(
+    name: string,
+    attrs: Record<string, string | boolean | number | undefined>
+  ) {
+    await this.tagAction.waitIncludeLoaded();
+    this.call(buildKrpanoAction("addlayer", name), true);
+    this.setTag("layer", name, attrs);
+  }
+  removeLayer(name: string): void {
+    this.call(buildKrpanoAction("removelayer", name), true);
   }
 }

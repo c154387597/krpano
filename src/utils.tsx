@@ -8,6 +8,7 @@ import ReactDOMServer from "react-dom/server";
  */
 type FuncName =
   | "addplugin"
+  | "removeplugin"
   | "set"
   | "loadxml"
   | "loadscene"
@@ -15,6 +16,10 @@ type FuncName =
   | "tween"
   | "addhotspot"
   | "removehotspot"
+  | "includexml"
+  | "includexmlstring"
+  | "addlayer"
+  | "removelayer"
   | "nexttick";
 
 /**
@@ -115,3 +120,34 @@ export const childrenToOuterHTML = (children: ReactNode) => {
 
   return wrapper.outerHTML;
 };
+
+export const compareVersions = (version1: string, version2: string) => {
+  const parts1: string[] = version1.split("-");
+  const parts2: string[] = version2.split("-");
+
+  const [major1, minor1] = parts1[0].split(".").map(Number);
+  const [major2, minor2] = parts2[0].split(".").map(Number);
+
+  if (major1 !== major2) {
+    return major1 - major2;
+  }
+
+  if (minor1 !== minor2) {
+    return minor1 - minor2;
+  }
+
+  if (parts1.length > 1 && parts2.length > 1) {
+    return parts1[1].localeCompare(parts2[1]);
+  }
+
+  if (parts1.length > 1) {
+    return 1;
+  } else if (parts2.length > 1) {
+    return -1;
+  }
+
+  return 0;
+};
+
+export const is121Version =
+  !!window.krpanoJS && compareVersions(window.krpanoJS.version, "1.21") > -1;

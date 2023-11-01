@@ -2,12 +2,16 @@ import { KrpanoActionProxy } from "./models";
 
 declare global {
   interface Window {
+    krpanoJS?: {
+      version: string;
+    };
     embedpano?: (config: IKrpanoConfig) => void;
     ReactKrpanoActionProxy?: KrpanoActionProxy;
   }
 }
 
 export interface NativeKrpanoRendererObject {
+  buildversion: string;
   get(key: string): any;
   call(action: string): void;
 }
